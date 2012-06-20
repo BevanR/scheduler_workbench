@@ -1,0 +1,6 @@
+name = Scheduler Workbench Integration
+description = Integrates the Scheduler module with the Workbench Moderation module.
+package = "Workbench"
+core = 7.x
+dependencies[] = workbench_moderation
+dependencies[] = scheduler

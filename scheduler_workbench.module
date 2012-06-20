@@ -1,0 +1,159 @@
+<?php
+
+/**
+ * Implements hook_form_alter on node_type form to add additional fields to scheduler
+ * 
+ * @param array $form
+ * @param array $form_state
+ */
+function scheduler_workbench_form_node_type_form_alter(&$form, $form_state) {
+  $states = array('' => t('--None--')) + workbench_moderation_state_labels();
+
+  if (TRUE === isset($form['scheduler']['unpublish'])) {
+    $form['scheduler']['unpublish']['scheduler_unpublish_moderation_state'] = array(
+      '#type' => 'select',
+      '#title' => t('Moderation State'),
+      '#options' => $states,
+      '#description' => t('Moderation state to be placed in after unpublishing'),
+      '#default_value' => variable_get('scheduler_unpublish_moderation_state_' . $form['#node_type']->type, '')
+    );
+
+    $form['scheduler']['unpublish']['scheduler_unpublish_default_time'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Default Time'),
+      '#description' => t('An offset from the current time such as "+1 day" or "-2 hours -30 minutes"'),
+      '#default_value' => variable_get('scheduler_unpublish_default_time_' . $form['#node_type']->type, '')
+    );
+  }
+
+  if (TRUE === isset($form['scheduler']['publish'])) {
+    $form['scheduler']['publish']['scheduler_publish_moderation_state'] = array(
+      '#type' => 'select',
+      '#title' => t('Moderation State'),
+      '#options' => $states,
+      '#description' => t('Moderation state to be placed in after publishing'),
+      '#default_value' => variable_get('scheduler_publish_moderation_state_' . $form['#node_type']->type, '')
+    );
+  }
+}
+
+/**
+ * Implements hook_perm
+ *
+ * @return array
+ */
+function scheduler_workbench_perm() {
+  return array('override default scheduler time');
+}
+
+/**
+ * Implements hook_form_alter
+ * 
+ * @param array $form
+ * @param array $form_state
+ */
+function scheduler_workbench_form_alter(&$form, $form_state) {
+  // Make sure we have scheduler settings
+  if (TRUE === isset($form['scheduler_settings'])) {
+    $node = $form['#node'];
+
+    // And we have unpublish settings
+    if (TRUE === isset($form['scheduler_settings']['unpublish_on'])) {
+      $unpublish_time = variable_get('scheduler_unpublish_default_time_' . $node->type, '');
+
+      // Only proceed if a default time has been set
+      if (FALSE === empty($unpublish_time)) {
+        // Only set the default value on node creation
+        if (TRUE === empty($node->nid)) {
+          // Make sure that the strtotime call doesn't throw an error
+          try {
+            // Add the default to the created date and set the unpublish date
+            $default_unpublish = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' ' . $unpublish_time));
+            $form['scheduler_settings']['unpublish_on']['#default_value'] = $default_unpublish;
+          }
+          catch (Exception $e) {
+            // If we get an error log it
+            watchdog('scheduler', $e->getMessage(), WATCHDOG_ERROR);
+          }
+        }
+      }
+
+      // If the user isn't allowed to override the default
+      if (FALSE === user_access('override default scheduler time')) {
+        $unpublish_date = $form['scheduler_settings']['unpublish_on']['#default_value'];
+        if (TRUE === empty($unpublish_date)) {
+          $unpublish_date = t('Never');
+        }
+
+        // Hide the form element and show it as text only
+        $form['scheduler_settings']['unpublish_on']['#access'] = FALSE;
+        $form['scheduler_settings']['unpublish_on']['#type'] = 'textfield';
+        $form['scheduler_settings']['unpublish_on_text'] = array(
+          '#markup' => t('<strong>Set to unpublish on:</strong> %date', array('%date' => $unpublish_date)),
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter to move form alter hooks
+ * to the end to make sure they're after scheduler
+ * 
+ * @param array $implementations
+ * @param string $hook
+ */
+function scheduler_workbench_module_implements_alter(&$implementations, $hook) {
+  switch ($hook) {
+    case 'form_node_type_form_alter':
+    case 'form_alter':
+      $group = $implementations['scheduler_workbench'];
+      unset($implementations['scheduler_workbench']);
+      $implementations['scheduler_workbench'] = $group;
+      break;
+  }
+}
+
+/**
+ * Implements hook_scheduler_api
+ * 
+ * @param stdClass $node
+ * @param string $action
+ */
+function scheduler_workbench_scheduler_api($node, $action) {
+  switch ($action) {
+    case 'publish':
+      _scheduler_workbench_scheduler_publish($node);
+      break;
+
+    case 'unpublish':
+      _scheduler_workbench_scheduler_unpublish($node);
+      break;
+  }
+}
+
+/**
+ * Handles when scheduler unpublishes a node
+ * 
+ * @param stdClass $node
+ */
+function _scheduler_workbench_scheduler_unpublish($node) {
+  $state = variable_get('scheduler_unpublish_moderation_state_' . $node->type, '');
+
+  if (FALSE === empty($state)) {
+    workbench_moderation_moderate($node, $state);
+  }
+}
+
+/**
+ * Handles when scheduler publishes a node
+ * 
+ * @param stdClass $node
+ */
+function _scheduler_workbench_scheduler_publish($node) {
+  $state = variable_get('scheduler_publish_moderation_state_' . $node->type, '');
+
+  if (FALSE === empty($state)) {
+    workbench_moderation_moderate($node, $state);
+  }
+}
