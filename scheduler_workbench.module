@@ -38,12 +38,17 @@ function scheduler_workbench_form_node_type_form_alter(&$form, $form_state) {
 }
 
 /**
- * Implements hook_perm
+ * Implements hook_permission
  *
  * @return array
  */
-function scheduler_workbench_perm() {
-  return array('override default scheduler time');
+function scheduler_workbench_permission() {
+  return array(
+    'override default scheduler time' => array(
+      'title' => t('Override default scheduler time'),
+      'description' => t('Allow users to override the default un-publish schedule time'),
+    ),
+  );
 }
 
 /**
