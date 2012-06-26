@@ -129,6 +129,10 @@ function scheduler_workbench_module_implements_alter(&$implementations, $hook) {
  * @param string $action
  */
 function scheduler_workbench_scheduler_api(&$node, $action) {
+  if (!workbench_moderation_node_type_moderated($node->type)) {
+    return;
+  }
+
   $func = "_scheduler_workbench_scheduler_$action";
   if (function_exists($func)) {
     $func($node);
