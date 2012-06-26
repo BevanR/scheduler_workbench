@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Implements hook_form_alter on node_type form to add additional fields to scheduler
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Alters node_type forms to add fields to scheduler.
  *
  * @param array $form
  * @param array $form_state
@@ -38,7 +40,7 @@ function scheduler_workbench_form_node_type_form_alter(&$form, $form_state) {
 }
 
 /**
- * Implements hook_permission
+ * Implements hook_permission().
  *
  * @return array
  */
@@ -52,45 +54,45 @@ function scheduler_workbench_permission() {
 }
 
 /**
- * Implements hook_form_alter
+ * Implements hook_form_alter().
  *
  * @param array $form
  * @param array $form_state
  */
 function scheduler_workbench_form_alter(&$form, $form_state) {
-  // Make sure we have scheduler settings
+  // Make sure we have scheduler settings.
   if (TRUE === isset($form['scheduler_settings'])) {
     $node = $form['#node'];
 
-    // And we have unpublish settings
+    // And we have unpublish settings.
     if (TRUE === isset($form['scheduler_settings']['unpublish_on'])) {
       $unpublish_time = variable_get('scheduler_unpublish_default_time_' . $node->type, '');
 
-      // Only proceed if a default time has been set
+      // Only proceed if a default time has been set.
       if (FALSE === empty($unpublish_time)) {
-        // Only set the default value on node creation
+        // Only set the default value on node creation.
         if (TRUE === empty($node->nid)) {
-          // Make sure that the strtotime call doesn't throw an error
+          // Make sure that the strtotime call doesn't throw an error.
           try {
-            // Add the default to the created date and set the unpublish date
+            // Add the default to the created date and set the unpublish date.
             $default_unpublish = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' ' . $unpublish_time));
             $form['scheduler_settings']['unpublish_on']['#default_value'] = $default_unpublish;
           }
           catch (Exception $e) {
-            // If we get an error log it
+            // If we get an error log it.
             watchdog('scheduler', $e->getMessage(), WATCHDOG_ERROR);
           }
         }
       }
 
-      // If the user isn't allowed to override the default
+      // If the user isn't allowed to override the default.
       if (FALSE === user_access('override default scheduler time')) {
         $unpublish_date = $form['scheduler_settings']['unpublish_on']['#default_value'];
         if (TRUE === empty($unpublish_date)) {
           $unpublish_date = t('Never');
         }
 
-        // Hide the form element and show it as text only
+        // Hide the form element and show it as text only.
         $form['scheduler_settings']['unpublish_on']['#access'] = FALSE;
         $form['scheduler_settings']['unpublish_on']['#type'] = 'textfield';
         $form['scheduler_settings']['unpublish_on_text'] = array(
@@ -102,8 +104,9 @@ function scheduler_workbench_form_alter(&$form, $form_state) {
 }
 
 /**
- * Implements hook_module_implements_alter to move form alter hooks
- * to the end to make sure they're after scheduler
+ * Implements hook_module_implements_alter().
+ *
+ * Moves form alter hooks to the end to make sure they are after scheduler.
  *
  * @param array $implementations
  * @param string $hook
@@ -120,7 +123,7 @@ function scheduler_workbench_module_implements_alter(&$implementations, $hook) {
 }
 
 /**
- * Implements hook_scheduler_api
+ * Implements hook_scheduler_api().
  *
  * @param stdClass $node
  * @param string $action
@@ -138,7 +141,7 @@ function scheduler_workbench_scheduler_api($node, $action) {
 }
 
 /**
- * Handles when scheduler unpublishes a node
+ * Handles when scheduler unpublishes a node.
  *
  * @param stdClass $node
  */
@@ -151,7 +154,7 @@ function _scheduler_workbench_scheduler_unpublish($node) {
 }
 
 /**
- * Handles when scheduler publishes a node
+ * Handles when scheduler publishes a node.
  *
  * @param stdClass $node
  */
