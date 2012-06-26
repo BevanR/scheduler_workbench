@@ -64,6 +64,15 @@ function scheduler_workbench_form_alter(&$form, $form_state) {
   if (TRUE === isset($form['scheduler_settings'])) {
     $node = $form['#node'];
 
+    // Scheduler unpublishes nodes that are scheduled to be published.  This
+    // causes workbench_moderation_node_history.published to become inconsistent.
+    // Do not let nodes with published revisions get a scheduled publish date.
+    if (!empty($node->workbench_moderation['published'])) {
+      $form['scheduler_settings']['publish_on']['#disabled'] = TRUE;
+      $form['scheduler_settings']['publish_on']['#default_value'] = '';
+      $form['scheduler_settings']['publish_on']['#description'] = t('A scheduled publish date may not be set because this content item already <a href="@url">has a published revision</a>.', array('@url' => url("node/$node->nid/moderate")));
+    }
+
     // And we have unpublish settings.
     if (TRUE === isset($form['scheduler_settings']['unpublish_on'])) {
       $unpublish_time = variable_get('scheduler_unpublish_default_time_' . $node->type, '');
