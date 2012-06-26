@@ -129,14 +129,9 @@ function scheduler_workbench_module_implements_alter(&$implementations, $hook) {
  * @param string $action
  */
 function scheduler_workbench_scheduler_api($node, $action) {
-  switch ($action) {
-    case 'publish':
-      _scheduler_workbench_scheduler_publish($node);
-      break;
-
-    case 'unpublish':
-      _scheduler_workbench_scheduler_unpublish($node);
-      break;
+  $func = "_scheduler_workbench_scheduler_$action";
+  if (function_exists($func)) {
+    $func($node);
   }
 }
 
