@@ -146,9 +146,7 @@ function scheduler_workbench_scheduler_api($node, $action) {
  * @param stdClass $node
  */
 function _scheduler_workbench_scheduler_unpublish($node) {
-  $state = variable_get('scheduler_unpublish_moderation_state_' . $node->type, '');
-
-  if (FALSE === empty($state)) {
+  if ($state = variable_get('scheduler_unpublish_moderation_state_' . $node->type, FALSE)) {
     workbench_moderation_moderate($node, $state);
   }
 }
@@ -159,9 +157,7 @@ function _scheduler_workbench_scheduler_unpublish($node) {
  * @param stdClass $node
  */
 function _scheduler_workbench_scheduler_publish($node) {
-  $state = variable_get('scheduler_publish_moderation_state_' . $node->type, '');
-
-  if (FALSE === empty($state)) {
+  if ($state = variable_get('scheduler_publish_moderation_state_' . $node->type, FALSE)) {
     workbench_moderation_moderate($node, $state);
   }
 }
