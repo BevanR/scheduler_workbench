@@ -128,7 +128,7 @@ function scheduler_workbench_module_implements_alter(&$implementations, $hook) {
  * @param stdClass $node
  * @param string $action
  */
-function scheduler_workbench_scheduler_api($node, $action) {
+function scheduler_workbench_scheduler_api(&$node, $action) {
   $func = "_scheduler_workbench_scheduler_$action";
   if (function_exists($func)) {
     $func($node);
@@ -140,7 +140,7 @@ function scheduler_workbench_scheduler_api($node, $action) {
  *
  * @param stdClass $node
  */
-function _scheduler_workbench_scheduler_unpublish($node) {
+function _scheduler_workbench_scheduler_unpublish(&$node) {
   if ($state = variable_get('scheduler_unpublish_moderation_state_' . $node->type, FALSE)) {
     workbench_moderation_moderate($node, $state);
   }
@@ -151,7 +151,7 @@ function _scheduler_workbench_scheduler_unpublish($node) {
  *
  * @param stdClass $node
  */
-function _scheduler_workbench_scheduler_publish($node) {
+function _scheduler_workbench_scheduler_publish(&$node) {
   if ($state = variable_get('scheduler_publish_moderation_state_' . $node->type, FALSE)) {
     workbench_moderation_moderate($node, $state);
   }
