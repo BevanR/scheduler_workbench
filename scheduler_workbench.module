@@ -17,7 +17,7 @@ function scheduler_workbench_form_node_type_form_alter(&$form, $form_state) {
       '#title' => t('Moderation State'),
       '#options' => $states,
       '#description' => t('Moderation state to be placed in after unpublishing'),
-      '#default_value' => variable_get('scheduler_unpublish_moderation_state_' . $form['#node_type']->type, '')
+      '#default_value' => variable_get('scheduler_unpublish_moderation_state_' . $form['#node_type']->type, workbench_moderation_state_none()),
     );
 
     $form['scheduler']['unpublish']['scheduler_unpublish_default_time'] = array(
@@ -34,7 +34,7 @@ function scheduler_workbench_form_node_type_form_alter(&$form, $form_state) {
       '#title' => t('Moderation State'),
       '#options' => $states,
       '#description' => t('Moderation state to be placed in after publishing'),
-      '#default_value' => variable_get('scheduler_publish_moderation_state_' . $form['#node_type']->type, '')
+      '#default_value' => variable_get('scheduler_publish_moderation_state_' . $form['#node_type']->type, workbench_moderation_state_published()),
     );
   }
 }
